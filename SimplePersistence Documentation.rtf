@@ -1,0 +1,71 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang2057{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil Consolas;}{\f2\fnil\fcharset0 Consolas;}}
+{\colortbl ;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\sa200\sl276\slmult1\lang9\f0\fs22\par
+SimplePersistence is a persistence library for writing/reading basic data structures on disk simply, requiring very little setup or thought on the part of the programmer. It is very good for when you just want to throw something into persistent storage and read it back easily, without wasting any time messing about.\par
+It is built on top of the excellent pugiXML library, and in actuallity is more of a utility wrapper around that than a library in its own right.\par
+\b\i Installation\i0\par
+\b0 Personally I don't like .libs or .dlls for little libraries like this, so all you need to do is copy the SimplePersistence.cpp and SimplePersistence.h into your project. In addition, the three pugiXML files need to be in there somewhere to, so that the #Include "pugiXML.h" statements in SimplePersistence can find them. There has been a small modification to pugiXML for this library, so try to use the ones included.\par
+If you want .libs or .dlls though, don't worry and just build them yourself from the provided files.\par
+\b\i Quick Start\par
+\b0\i0 After copying in the files correctly, you should just be able to #include "SimplePersistence.h" and there you are!\par
+There is no need to initialise anything, SimplePersistence will search for the directory when first called, and if neccesary create its own directory and persistence file. (These paths can be customised at the top of SimplePersistence.cpp.)\par
+\b\i Saving an int\b0\i0\par
+All simplePersistence functionality is accessed via \i sPersistence.Function()\i0 . To save an int entry to the persistence file, simply call\i  \par
+\pard\sa200\sl276\slmult1\qc sPersistence.SetInt(std::string key, int value);\par
+\pard\sa200\sl276\slmult1\i0 The string key is what you will use to look the entry up later, so you might want to remember it.\par
+(A small note, if there already is an entry of the same key name, that entry will be overwritten by the new one, so be careful.)\par
+After calling this function, the int will be saved in active memory, and you can look it up using \i GetInt\i0  while the program is still running, however, to save it to file so it is persistent, before the program finishes you need to call \par
+\pard\sa200\sl276\slmult1\qc\i sPersistence.Save() \par
+\pard\sa200\sl276\slmult1\i0 This will save the entire persistence structure to the XML file. Remember, although by default the persistence file is loaded into the active structure automatically upon initilisation, you must call\i  Save()\i0  before the program ends if you want the structure to be saved back into the file.\par
+\b\i Getting an int\b0\i0\par
+To get an int that you have saved, you need to provide Simple Persistence with the key it is saved under. For example, if you wanted to get an int you had saved with \i SetInt("Health1",100);\i0  and set it into a playerHealth variable, you would call : \par
+\pard\sa200\sl276\slmult1\qc\i playerHealth = sPersistence.GetInt("Health1");\par
+\pard\sa200\sl276\slmult1\i0 Of course, you may very well end up storing the keys in strings, in which case you could call\par
+\pard\sa200\sl276\slmult1\qc\i std::string player1HealthKey = "Health1";\par
+playerHealth = sPersistence.GetInt(player1HealthKey);\par
+\pard\sa200\sl276\slmult1\i0 If the entry dosent exist, or is not an int, the getter should return 0 and print lots of errors in the console window. However, if you want to check for validity yourself there are utility checker functions you can use, although you shouldn't have to.\par
+\b Other types\par
+\b0 There are getters and setters for other standard types too, keeping it simple, there are only five types of data you can save, which are :\par
+Int\par
+Float\par
+Double\par
+String\par
+Bool\par
+The getters and setters for these are much the same as the int one is, you must provide a key and value for the setters, and the getters take the key and return the value. Make sure you don't confuse your types, for example, you can't call \i GetFloat()\i0  if the entry was set with \i SetString() \i0 or \i SetDouble().\par
+\b\i0 Removing Entries\par
+\b0 If you want to remove an entry from the persistence structure, simply call :\par
+\pard\sa200\sl276\slmult1\qc\i sPersistence.RemoveEntry(std::string key);\i0\par
+\pard\sa200\sl276\slmult1 Poof! It's gone. Remember, if you want the removal to be saved into the file you need to call \i Save()\i0  at some point, or it will only be removed from the active structure, and will be re-added when a parse and load is done next.\par
+\par
+\b Persistence Objects\i\par
+\b0\i0 If all you want to do is save a few bits of data without much hassle, you can stop reading here, go forth and be merry! However, if you want a little bit more control, persistence objects are structures that you can use to group your persistent data, much like classes. Good for if you want to have entries with the same name stored, or if you want to group data by in-application objects, such as stats for different players in a game.\par
+By default, you are working in the "Default" persistence object, if you want to make a new one, call :\par
+\pard\sa200\sl276\slmult1\qc\i sPersistence.AddPersistenceObject(std::string objectName);\par
+\pard\sa200\sl276\slmult1\i0 That will add a new persistence object to the persistence structure, however, we are still working in the default structure, to move into the new structure, you need to call :\i\par
+\pard\sa200\sl276\slmult1\qc sPersistence.SetPersistenceObject(std::string \cf1\highlight2\i0\f1\fs19 objectToChangeToName\lang2057\f2 );\par
+\pard\sa200\sl276\slmult1\cf0\highlight0\lang9\f0\fs22 Try and make sure the object exists before changing to it, or you could end up thinking you've switched objects when you actually havn't, which wouldn't be fun.\par
+So now that you're in a new persistence object, what can you do with it? Well, everything you could do before, the only difference is that all the Getters and Setters only apply within the scope of the active object. For example, what do you think will be printed here :\i\par
+sPersistence.AddPersistenceObject("Player1");\par
+sPersistence.AddPersistenceObject("Player2);\par
+sPersistence.SetPersistenceObject("Player1");\par
+sPersistence.SetInt("Health",50);\par
+sPersistence.SetPersistenceObject("Player2);\par
+sPersistence.SetInt("Health",80");\par
+sPersisence.SetPersistenceObject("Player1");\par
+std::cout << "Health : " << GetInt("Health");\par
+\i0 Here, the printed int will be 50, because we are accessing the "Health" entry of the active persistence object, which at the time of printing is "Player1," as it was set to that in the previous lines \i SetPersistenceObject\i0 . The final file will have two persistence objects named "Player1" and "Player2". Each will have an int entry called "Health", with player1s being 50, and player2s being 80.\par
+\b\i Removing Persistence Objects\b0\i0\par
+A Persistence Object is removed in much the same way as an entry is, simply call :\par
+\pard\sa200\sl276\slmult1\qc\i sPersistence.RemovePersistenceObject(std::string objectName);\par
+\pard\sa200\sl276\slmult1\i0 Something to watch out for though is that when you remove a persistence object, all entries that it contains get deleted as well, so be careful.\par
+If you want to completely empty a persistence object of all entries, you can call :\par
+\pard\sa200\sl276\slmult1\qc\i sPersistence.ClearPersistenceObject(std::string objectName);\par
+\pard\sa200\sl276\slmult1\i0 This will leave the persistence object existing, but it will be completely blank as if you had just created it.\par
+Remember, just like normal entries, calls to add/remove/modify persistence objects only affect the active structure, and are not written into the file untill \i Save()\i0  is called.\par
+\par
+That should be enough to get you going, there are a few more utility functions included, so if you think you can't do something you want take a look at SimplePersistence.h and SimplePersistence.cpp. However, if there is functionality you really want but isn't in there, try implementing it yourself, this is an extremely simple and trivial library, and shouldn't be too hard to modify.\i\par
+\pard\sa200\sl276\slmult1\qc\i0\par
+\pard\sa200\sl276\slmult1\par
+\par
+}
+ 
